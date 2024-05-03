@@ -8,6 +8,7 @@ login.php -> after registration use that email and password login to the userdas
                     Example:
                               Email = nethmi@gmail.com
                               Password = nethmi123@
+                              
 userdashboard.php -> after user login and navigate to the userdashboard
 upload_prescription.php -> user can upload prescriptions
 
