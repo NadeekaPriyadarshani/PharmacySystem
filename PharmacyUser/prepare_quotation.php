@@ -1,9 +1,8 @@
 <?php
-
 ini_set("SMTP", "localhost:8080");
 ini_set("smtp_port", "8080");
 
-//database connection
+// database connection
 include '../db_connection.php';
 
 // Initialize variables
@@ -24,15 +23,12 @@ if ($row = mysqli_fetch_assoc($result)) {
     // Retrieve uploaded image filenames
     $uploaded_files = explode(",", $row["uploaded_files"]);
 } else {
-    
     echo "Prescription not found.";
-    
 }
 
 // Close statement and connection
 mysqli_stmt_close($stmt);
 mysqli_close($conn);
-
 ?>
 
 <!DOCTYPE html>
@@ -57,21 +53,18 @@ mysqli_close($conn);
     <h2>Prescription Images</h2>
     <div>
         <?php
-          $uploaded_files = explode(",", $row["uploaded_files"]);
-          echo '<div class="image-container">';
-          foreach ($uploaded_files as $file) {
-          echo "<img src='../images/" . $file . "' width='100' height='100'>";
+        echo '<div class="image-container">';
+        foreach ($uploaded_files as $file) {
+            echo "<img src='../images/" . $file . "' width='100' height='100'>";
         }
-          echo '</div>';
-          echo "<br>";
-
+        echo '</div>';
+        echo "<br>";
         ?>
     </div>
-    
 
     <br>
     <h2>Prepare Quotation</h2>
-    <table>
+    <table id="quotation_table">
         <thead>
             <tr>
                 <th>Drug Name</th>
@@ -79,7 +72,9 @@ mysqli_close($conn);
                 <th>Amount</th>
             </tr>
         </thead>
-        
+        <tbody>
+            <!-- Table rows will be dynamically added here -->
+        </tbody>
         <tfoot>
             <tr>
                 <td colspan="2">Total</td>
@@ -99,72 +94,69 @@ mysqli_close($conn);
     <br><br>
 
     <script>
-    function addDrug() {
-        var drugName = document.getElementById("drug_name").value;
-        var quantity = document.getElementById("quantity").value;
-        var amount = document.getElementById("amount").value;
+        function addDrug() {
+            var drugName = document.getElementById("drug_name").value;
+            var quantity = document.getElementById("quantity").value;
+            var amount = document.getElementById("amount").value;
 
-        if (drugName && quantity && amount) {
-            var table = document.getElementById("quotation_table");
-            var newRow = table.insertRow(-1);
-            var cell1 = newRow.insertCell(0);
-            var cell2 = newRow.insertCell(1);
-            var cell3 = newRow.insertCell(2);
+            if (drugName && quantity && amount) {
+                var table = document.getElementById("quotation_table").getElementsByTagName('tbody')[0];
+                var newRow = table.insertRow();
+                var cell1 = newRow.insertCell(0);
+                var cell2 = newRow.insertCell(1);
+                var cell3 = newRow.insertCell(2);
 
-            cell1.innerHTML = drugName;
-            cell2.innerHTML = quantity;
-            cell3.innerHTML = amount;
+                cell1.innerHTML = drugName;
+                cell2.innerHTML = quantity;
+                cell3.innerHTML = amount;
 
-            updateTotal(amount);
-        } else {
-            alert("Please fill in all fields.");
+                updateTotal(parseFloat(amount));
+            } else {
+                alert("Please fill in all fields.");
+            }
         }
-    }
 
-    function updateTotal(amount) {
-        var totalElement = document.getElementById("total_amount");
-        var currentTotal = parseFloat(totalElement.textContent);
-        var newTotal = currentTotal + parseFloat(amount);
-        totalElement.textContent = newTotal.toFixed(2);
-    }
+        function updateTotal(amount) {
+            var totalElement = document.getElementById("total_amount");
+            var currentTotal = parseFloat(totalElement.textContent);
+            var newTotal = currentTotal + amount;
+            totalElement.textContent = newTotal.toFixed(2);
+        }
 
-    function sendQuotation() {
-    var quotationData = "";
-    var tableRows = document.querySelectorAll("#quotation_table tr");
-    tableRows.forEach(function(row) {
-        var cells = row.getElementsByTagName("td");
-        var drugName = cells[0].innerText;
-        var quantity = cells[1].innerText;
-        var amount = cells[2].innerText;
-        var statusRadio = row.querySelector("input[type='radio']:checked");
-        var status = statusRadio ? statusRadio.value : "Pending";
-        quotationData += drugName + ": " + quantity + " (" + amount + ") - " + status + "\n";
-    });
+        function sendQuotation() {
+            // Collect quotation data
+            var quotationData = "";
+            var tableRows = document.querySelectorAll("#quotation_table tbody tr");
+            tableRows.forEach(function (row) {
+                var cells = row.getElementsByTagName("td");
+                var drugName = cells[0].innerText;
+                var quantity = cells[1].innerText;
+                var amount = cells[2].innerText;
+                quotationData += drugName + ": " + quantity + " (" + amount + ")\n";
+            });
 
-    var userEmail = prompt("Please enter your email address:");
-    if (userEmail) {
-        var subject = "Quotation Details";
-        var body = "Here is the quotation details:\n\n" + quotationData + "\nTotal Amount: " + document.getElementById("total_amount").textContent + "\n\nTo accept this quotation, click the button below:\n\n<button onclick=\"acceptQuotation('" + userEmail + "')\">Accept</button>\n\nTo reject, simply ignore this email or reply with the reason for rejection.";
-        var mailtoLink = "mailto:" + userEmail + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
-        window.location.href = mailtoLink;
-    }
-}
+            // Prompt for email and send
+            var userEmail = prompt("Please enter your email address:");
+            if (userEmail) {
+                var subject = "Quotation Details";
+                var body = "Here is the quotation details:\n\n" + quotationData + "\nTotal Amount: " + document.getElementById("total_amount").textContent + "\n\nTo accept this quotation, click the button below:\n\n<button onclick=\"acceptQuotation('" + userEmail + "')\">Accept</button>\n\nTo reject, simply ignore this email or reply with the reason for rejection.";
+                var mailtoLink = "mailto:" + userEmail + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+                window.location.href = mailtoLink;
+            }
+        }
 
-function acceptQuotation(userEmail) {
-    //  status in the database
-    alert("Quotation accepted. Thank you!");
-}
-
-
-</script>
+        function acceptQuotation(userEmail) {
+            // Update status in the database
+            alert("Quotation accepted. Thank you!");
+        }
+    </script>
 
     <button onclick="sendQuotation()">Send Quotation</button>
 </body>
 </html>
 
 <style>
-
-.image-container img {
-    margin-right: 10px; 
-}
+    .image-container img {
+        margin-right: 10px;
+    }
 </style>
