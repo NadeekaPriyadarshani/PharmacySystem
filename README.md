@@ -1,6 +1,7 @@
 maindashboard.php - admin and user can login to the system /  user register 
 
 User
+
 registration.php -> new user need to register the pharmacy
 login.php -> after registration use that email and password login to the userdashboard
                     Example:
@@ -10,7 +11,9 @@ login.php -> after registration use that email and password login to the userdas
 userdashboard.php -> after user login and navigate to the userdashboard
 upload_prescription.php -> user can upload prescriptions
 
+
 Pharmacy user
+
 adminlogin.php -> pharmacy user need to login by using 
                               Email = abcpharmacy@gmail.com
                               Password = abc123@
